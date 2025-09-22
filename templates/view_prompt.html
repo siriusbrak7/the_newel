@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prompt.title }} - The Newel{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Prompt Display -->
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">{{ prompt.title }}</h1>
+            <span class="card-meta">Created: {{ prompt.timestamp.strftime('%Y-%m-%d') }}</span>
+        </div>
+        <div class="prompt-content">
+            {{ prompt.content }}
+        </div>
+        <div class="card-meta">
+            <strong>Created by:</strong> {{ prompt.teacher.name }}
+        </div>
+    </div>
+
+    <!-- Response Form -->
+    <div class="content-box">
+        <h2>Submit Your Response</h2>
+        <form method="POST" action="">  <!-- FIXED: Empty action submits to the current URL -->
+            <div class="form-group">
+                <label for="response_content" class="form-label">Your Answer</label>
+                <textarea id="response_content" 
+                          name="content" 
+                          class="form-input" 
+                          rows="6" 
+                          placeholder="Write your detailed response here..." 
+                          required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Response</button>
+        </form>
+    </div>
+
+    <!-- REMOVED: The "Your Previous Responses" section -->
+    <!-- This feature is not implemented in the backend (the 'responses' variable is not passed to this template) -->
+</div>
+{% endblock %}

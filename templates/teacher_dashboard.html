@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - The Newel{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Teacher Dashboard</h1>
+        <p>Welcome back, {{ current_user.name }}! Manage your Biology prompts.</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-actions mb-3">
+        <a href="{{ url_for('create_prompt') }}" class="btn btn-primary">+ Create New Prompt</a>
+        <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">View Leaderboard</a>
+    </div>
+
+    <!-- Prompts Section -->
+    <div class="content-box">
+        <h2>Your Biology Prompts</h2>
+        {% if prompts %}
+            <div class="prompts-list">
+                {% for prompt in prompts %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ prompt.title }}</h3>
+                            <span class="card-meta">{{ prompt.timestamp.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        <div class="prompt-content">
+                            {{ prompt.content }}
+                        </div>
+                        <div class="card-actions">
+                            <!-- FIXED: Changed 'view_responses' to the correct route 'grade_responses' -->
+                            <a href="{{ url_for('grade_responses', prompt_id=prompt.id) }}" class="btn btn-small">
+                                Grade Responses ({{ prompt.responses|length }})
+                            </a>
+                            <!-- REMOVED: Edit prompt link for now, as the route doesn't exist -->
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">You haven't created any prompts yet. <a href="{{ url_for('create_prompt') }}">Create your first one!</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

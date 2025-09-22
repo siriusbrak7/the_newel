@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - The Newel{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Student Dashboard</h1>
+        <p>Welcome back, {{ current_user.name }} (Year {{ current_user.year_level }})!</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-actions mb-3">
+        <a href="{{ url_for('prompts') }}" class="btn btn-primary">View All Biology Prompts</a>
+        <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">View Leaderboard</a>
+    </div>
+
+    <!-- Response History -->
+    <div class="content-box">
+        <h2>Your Response History</h2>
+        {% if responses %}
+            <div class="responses-list">
+                {% for response in responses %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ response.prompt.title }}</h3>
+                            <span class="card-meta">Submitted: {{ response.timestamp.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        
+                        <div class="prompt-content">
+                            <strong>Your Answer:</strong><br>
+                            {{ response.content }}
+                        </div>
+
+                        <!-- Grade and Feedback Section -->
+                        <div class="grading-form">
+                            {% if response.grade %}
+                                <p><strong>Grade:</strong> <span class="badge">{{ response.grade.score }}/100</span></p>
+                                {% if response.grade.feedback_text %}
+                                    <p><strong>Teacher's Feedback:</strong><br>
+                                    {{ response.grade.feedback_text }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p><em>Awaiting grading from your teacher.</em></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">You haven't submitted any responses yet. <a href="{{ url_for('prompts') }}">Find a prompt to get started!</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Biology Prompts - The Newel{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Biology Prompts</h1>
+        <p>Choose a prompt and submit your response to practice and improve your skills.</p>
+    </div>
+
+    {% if prompts %}
+        <div class="prompts-list">
+            {% for prompt in prompts %}
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">{{ prompt.title }}</h2>
+                        <span class="card-meta">Created: {{ prompt.timestamp.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    <div class="prompt-content">
+                        <!-- FIXED: Changed prompt.description to prompt.content -->
+                        {{ prompt.content }}
+                    </div>
+                    <div class="card-meta">
+                        <strong>Created by:</strong> {{ prompt.teacher.name }}
+                    </div>
+                    <div class="card-actions">
+                        <a href="{{ url_for('view_prompt', prompt_id=prompt.id) }}" class="btn btn-primary">
+                            View & Respond
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No prompts available right now. Please check back later!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

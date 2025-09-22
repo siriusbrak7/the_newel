@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Register - The Newel{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Register for The Newel</h2>
+        <p class="auth-subtitle">Join our Biology education community today!</p>
+        
+        <form method="POST" action="{{ url_for('register') }}" class="auth-form" id="register-form">
+            <!-- Full Name -->
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" 
+                       id="name" 
+                       name="name" 
+                       class="form-input" 
+                       placeholder="Enter your full name"
+                       required 
+                       autofocus>
+                <small class="form-hint">Use your real name for teacher/student identification.</small>
+            </div>
+            
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="form-input" 
+                       placeholder="Create a secure password"
+                       required>
+                <small class="form-hint">At least 6 characters recommended.</small>
+            </div>
+            
+            <!-- User Type -->
+            <div class="form-group">
+                <label class="form-label">I am a:</label>
+                <div class="form-radio-group">
+                    <label><input type="radio" name="user_type" value="Teacher" required> Teacher</label>
+                    <label><input type="radio" name="user_type" value="Student" required> Student</label>
+                </div>
+            </div>
+            
+            <!-- Year Level (only for students) -->
+            <div class="form-group" id="year-level-group" style="display: none;">
+                <label for="year_level" class="form-label">Year Level</label>
+                <select id="year_level" name="year_level" class="form-input">
+                    <option value="">Select your year</option>
+                    <option value="7">Year 7</option>
+                    <option value="8">Year 8</option>
+                    <option value="9">Year 9</option>
+                    <option value="10">Year 10</option>
+                    <option value="11">Year 11</option>
+                </select>
+                <small class="form-hint">Required only if you are a student.</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">Register</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{{ url_for('login') }}" class="auth-link">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('input[name="user_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const yearLevelGroup = document.getElementById('year-level-group');
+        const yearLevelSelect = document.getElementById('year_level');
+        if (this.value === 'Student') {
+            yearLevelGroup.style.display = 'block';
+            yearLevelSelect.required = true;
+        } else {
+            yearLevelGroup.style.display = 'none';
+            yearLevelSelect.required = false;
+            yearLevelSelect.value = '';
+        }
+    });
+});
+</script>
+{% endblock %}

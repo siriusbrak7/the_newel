@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - The Newel{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <h1>Biology Leaderboard</h1>
+        <p>See how you rank against other students!</p>
+    </div>
+
+    <!-- Leaderboard Table -->
+    {% if leaderboard %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Student Name</th>
+                    <th>Year Level</th>
+                    <th>Average Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in leaderboard %}
+                <tr class="{% if entry.name == current_user.name %}highlight{% endif %}"> <!-- Check by name instead of ID -->
+                    <td>{{ entry.rank }}</td> <!-- Use 'rank' key -->
+                    <td>{{ entry.name }}</td> <!-- Use 'name' key -->
+                    <td>Year {{ entry.year_level }}</td> <!-- Use 'year_level' key -->
+                    <td><strong>{{ entry.avg_score }}%</strong></td> <!-- Use 'avg_score' key -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">No leaderboard data available yet. Submit responses and get graded to appear on the leaderboard!</p>
+    {% endif %}
+</div>
+{% endblock %}

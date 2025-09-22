@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Newel{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-brand">The Newel</a>
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <span class="nav-user">Welcome, {{ current_user.name }}</span>
+                    {% if current_user.user_type == 'Teacher' %}
+                        <a href="{{ url_for('teacher_dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('create_prompt') }}" class="nav-link">Create Prompt</a>
+                    {% else %}
+                        <a href="{{ url_for('student_dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('prompts') }}" class="nav-link">Biology Prompts</a>
+                    {% endif %}
+                    <a href="{{ url_for('leaderboard') }}" class="nav-link">Leaderboard</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-link">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 The Newel - Educational Platform for Biology</p>
+        </div>
+    </footer>
+</body>
+</html>

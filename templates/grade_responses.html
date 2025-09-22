@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Grade Responses - The Newel{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">Grade Responses for "{{ prompt.title }}"</h1>
+    <p class="page-subtitle">Created by {{ prompt.teacher.name }} on {{ prompt.timestamp.strftime('%Y-%m-%d') }}</p>
+
+    {% if responses %}
+    <div class="responses-list">
+        {% for response in responses %}
+        <div class="response-card">
+            <div class="response-meta">
+                <p><strong>Student:</strong> {{ response.student.name }} (Year {{ response.student.year_level }})</p>
+                <p><strong>Submitted:</strong> {{ response.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+            <div class="response-content">
+                <p>{{ response.content }}</p>
+            </div>
+
+            {% if response.grade %}
+                <div class="graded-section">
+                    <p><strong>Score:</strong> {{ response.grade.score }}</p>
+                    <p><strong>Feedback:</strong> {{ response.grade.feedback_text }}</p>
+                    <p class="graded-note">This response has already been graded.</p>
+                </div>
+            {% else %}
+                <form method="POST" action="{{ url_for('grade_response', response_id=response.id) }}" class="grade-form">
+                    <div class="form-group">
+                        <label for="score-{{ response.id }}">Score (0–100)</label>
+                        <input type="number" 
+                               id="score-{{ response.id }}" 
+                               name="score" 
+                               class="form-input" 
+                               min="0" max="100" 
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback-{{ response.id }}">Feedback</label>
+                        <textarea id="feedback-{{ response.id }}" 
+                                  name="feedback_text" 
+                                  class="form-input" 
+                                  rows="3" 
+                                  placeholder="Write feedback for the student..." 
+                                  required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Grade</button>
+                </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="no-data">No student responses have been submitted yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

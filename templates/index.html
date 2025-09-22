@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Home - The Newel{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Welcome to The Newel</h1>
+
+        {% if current_user.is_authenticated %}
+            <p class="subtitle">Welcome back, {{ current_user.name }}!</p>
+        {% else %}
+            <p class="subtitle">An educational platform dedicated to Biology for Years 7–11</p>
+        {% endif %}
+
+        {% if not current_user.is_authenticated %}
+        <div class="hero-buttons">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+        </div>
+        {% else %}
+        <div class="hero-buttons">
+            {% if current_user.user_type == 'Teacher' %}
+                <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                <a href="{{ url_for('create_prompt') }}" class="btn btn-secondary">Create Prompt</a>
+            {% else %}
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                <a href="{{ url_for('prompts') }}" class="btn btn-secondary">View Prompts</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features-section">
+    <h2>Key Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <h3>For Teachers</h3>
+            <p>Create Biology prompts, grade student responses, and provide valuable feedback.</p>
+        </div>
+        <div class="feature-card">
+            <h3>For Students</h3>
+            <p>Explore prompts, submit responses, track progress, and climb the leaderboard.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Leaderboard</h3>
+            <p>Compete with peers based on average grades and celebrate academic growth.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
