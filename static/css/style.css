@@ -5,6 +5,8 @@
    ===================================================== */
 
 /* ---------- CSS Variables ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 :root {
     --primary-green: #2e7d32;
     --primary-green-hover: #43a047;
@@ -123,12 +125,15 @@ a:hover, a:focus {
 }
 
 .nav-brand {
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 2.5rem;
+    font-weight: 400;
+    font-family: 'Great Vibes', cursive;
     color: var(--accent-yellow);
     letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(251,192,45,0.7);
+    text-shadow: 0 0 12px rgba(251,192,45,0.9);
 }
+
+
 
 .nav-links {
     display: flex;
