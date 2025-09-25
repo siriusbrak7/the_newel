@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="dashboard-header">
         <h1>Teacher Dashboard</h1>
-        <p>Welcome back, {{ current_user.name }}! Manage your Biology prompts.</p>
+        <p>Welcome back, {{ current_user.name }}! Manage prompts.</p>
     </div>
 
     <!-- Quick Actions -->
@@ -18,7 +18,7 @@
 
     <!-- Prompts Section -->
     <div class="content-box">
-        <h2>Your Biology Prompts</h2>
+        <h2>Your Prompts</h2>
         {% if prompts %}
             <div class="prompts-list">
                 {% for prompt in prompts %}
