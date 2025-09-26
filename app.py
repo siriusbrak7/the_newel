@@ -272,6 +272,25 @@ def leaderboard():
         })
     return render_template('leaderboard.html', leaderboard=leaderboard_data)
 
+@app.route('/test')
+def test_route():
+    try:
+        # Test database connection
+        db.engine.connect()
+        return "Database connection OK"
+    except Exception as e:
+        return f"Database error: {str(e)}"
+
+@app.route('/test-create')
+def test_create():
+    try:
+        # Test table creation
+        with app.app_context():
+            db.create_all()
+        return "Tables created successfully"
+    except Exception as e:
+        return f"Table creation error: {str(e)}"
+
 # Run app
 if __name__ == '__main__':
     with app.app_context():
