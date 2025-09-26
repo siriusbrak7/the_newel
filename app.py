@@ -1,5 +1,4 @@
 import os
-import re
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -14,20 +13,8 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-key-please-change-in-production'
 
-# Get Database URL from Railway (or use SQLite for development)
-database_url = os.environ.get('DATABASE_URL')
-
-if database_url:
-    # Fix PostgreSQL URL format for SQLAlchemy
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print("Using PostgreSQL database from environment")
-else:
-    # Fallback to SQLite for local development
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///merged_newel.db'
-    print("Using SQLite database for local development")
-
+# SIMPLE DATABASE CONFIG - Using SQLite for reliable deployment
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newel.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Extensions
@@ -39,7 +26,6 @@ login_manager.login_message = 'Please log in to access this page.'
 
 # Models
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'  # Explicitly set table name
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -57,34 +43,31 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 class Prompt(db.Model):
-    __tablename__ = 'prompts'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    subject = db.Column(db.String(50), default='Biology')
-    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Updated foreign key reference
+    subject = db.Column(db.String(50), default='General')
+    teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Responses cascade when prompt deleted
     responses = db.relationship('Response', backref='prompt', lazy=True, cascade='all, delete-orphan')
 
 class Response(db.Model):
-    __tablename__ = 'responses'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    prompt_id = db.Column(db.Integer, db.ForeignKey('prompts.id'), nullable=False)  # Updated foreign key reference
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Updated foreign key reference
+    prompt_id = db.Column(db.Integer, db.ForeignKey('prompt.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # A single grade per response
     grade = db.relationship('Grade', backref='response', uselist=False, cascade='all, delete-orphan')
 
 class Grade(db.Model):
-    __tablename__ = 'grades'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.Integer, nullable=False)  # Expect 0-100
     feedback_text = db.Column(db.Text, nullable=True)
-    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'), nullable=False, unique=True)  # Updated foreign key reference
+    response_id = db.Column(db.Integer, db.ForeignKey('response.id'), nullable=False, unique=True)
 
 # Login loader
 @login_manager.user_loader
@@ -115,7 +98,7 @@ def student_required(f):
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('teacher_dashboard')) if current_user.user_type == 'Teacher' else redirect(url_for('student_dashboard'))
-    return render_template('index.html')  # Provide a basic landing page template
+    return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -188,7 +171,7 @@ def create_prompt():
     if request.method == 'POST':
         title = (request.form.get('title') or '').strip()
         content = (request.form.get('content') or '').strip()
-        subject = (request.form.get('subject') or 'Biology').strip()
+        subject = (request.form.get('subject') or 'General').strip()
 
         if not title or not content:
             flash('Title and content are required for a prompt.', 'error')
@@ -205,9 +188,8 @@ def create_prompt():
 @login_required
 @student_required
 def prompts():
-    subject = request.args.get('subject', 'Biology')
-    prompts = Prompt.query.filter_by(subject=subject).order_by(Prompt.timestamp.desc()).all()
-    return render_template('prompts.html', prompts=prompts, subject=subject)
+    prompts = Prompt.query.order_by(Prompt.timestamp.desc()).all()
+    return render_template('prompts.html', prompts=prompts, subject='General')
 
 @app.route('/prompt/<int:prompt_id>', methods=['GET', 'POST'])
 @login_required
@@ -232,7 +214,7 @@ def view_prompt(prompt_id):
 def grade_responses(prompt_id):
     prompt = Prompt.query.get_or_404(prompt_id)
     if prompt.teacher_id != current_user.id:
-        flash('You must be a teacher to access that page.', 'error')
+        flash('You are not authorized to grade responses for that prompt.', 'error')
         return redirect(url_for('teacher_dashboard'))
     responses = Response.query.filter_by(prompt_id=prompt_id).order_by(Response.timestamp.asc()).all()
     return render_template('grade_responses.html', prompt=prompt, responses=responses)
@@ -260,7 +242,6 @@ def grade_response(response_id):
 
     existing_grade = Grade.query.filter_by(response_id=response_id).first()
     if existing_grade:
-        # Update existing grade
         existing_grade.score = score
         existing_grade.feedback_text = feedback
         flash('Grade updated.', 'success')
@@ -274,7 +255,6 @@ def grade_response(response_id):
 @app.route('/leaderboard')
 @login_required
 def leaderboard():
-    # Average grade per student (students with at least one graded response)
     from sqlalchemy import func
     students_with_grades = db.session.query(
         User.id, User.name, User.year_level, func.avg(Grade.score).label('avg_score')
