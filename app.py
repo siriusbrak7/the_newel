@@ -39,6 +39,7 @@ login_manager.login_message = 'Please log in to access this page.'
 
 # Models
 class User(UserMixin, db.Model):
+    __tablename__ = 'users'  # Explicitly set table name
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -56,31 +57,34 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 class Prompt(db.Model):
+    __tablename__ = 'prompts'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     subject = db.Column(db.String(50), default='Biology')
-    teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Updated foreign key reference
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Responses cascade when prompt deleted
     responses = db.relationship('Response', backref='prompt', lazy=True, cascade='all, delete-orphan')
 
 class Response(db.Model):
+    __tablename__ = 'responses'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    prompt_id = db.Column(db.Integer, db.ForeignKey('prompt.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    prompt_id = db.Column(db.Integer, db.ForeignKey('prompts.id'), nullable=False)  # Updated foreign key reference
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Updated foreign key reference
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # A single grade per response
     grade = db.relationship('Grade', backref='response', uselist=False, cascade='all, delete-orphan')
 
 class Grade(db.Model):
+    __tablename__ = 'grades'  # Explicitly set table name for consistency
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.Integer, nullable=False)  # Expect 0-100
     feedback_text = db.Column(db.Text, nullable=True)
-    response_id = db.Column(db.Integer, db.ForeignKey('response.id'), nullable=False, unique=True)
+    response_id = db.Column(db.Integer, db.ForeignKey('responses.id'), nullable=False, unique=True)  # Updated foreign key reference
 
 # Login loader
 @login_manager.user_loader
@@ -228,7 +232,7 @@ def view_prompt(prompt_id):
 def grade_responses(prompt_id):
     prompt = Prompt.query.get_or_404(prompt_id)
     if prompt.teacher_id != current_user.id:
-        flash('You are not authorized to grade responses for that prompt.', 'error')
+        flash('You must be a teacher to access that page.', 'error')
         return redirect(url_for('teacher_dashboard'))
     responses = Response.query.filter_by(prompt_id=prompt_id).order_by(Response.timestamp.asc()).all()
     return render_template('grade_responses.html', prompt=prompt, responses=responses)
@@ -293,4 +297,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
